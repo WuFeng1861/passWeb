@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>密码管理器 - 控制面板</title>
   <link rel="icon" type="image/x-icon" href="<%= basePath %>/favicon.ico">
-  <!-- 保持原有样式不变 -->
   <style>
     * {
       box-sizing: border-box;
@@ -26,7 +25,7 @@
       padding: 2rem;
     }
 
-   .header {
+    .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -81,6 +80,14 @@
       margin-bottom: 1rem;
     }
 
+    .chain-select {
+      display: none;
+    }
+
+    .chain-select.show {
+      display: block;
+    }
+
     label {
       display: block;
       margin-bottom: 0.5rem;
@@ -88,7 +95,7 @@
       font-weight: 500;
     }
 
-    input {
+    input, select {
       width: 100%;
       padding: 0.75rem 1rem;
       border: 2px solid #e2e8f0;
@@ -97,7 +104,7 @@
       transition: all 0.3s ease;
     }
 
-    input:focus {
+    input:focus, select:focus {
       outline: none;
       border-color: #4299e1;
       box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
@@ -124,8 +131,8 @@
     .delete-btn {
       background: linear-gradient(to right, #f56565, #e53e3e);
     }
-	
-	.copy-btn {
+
+    .copy-btn {
       background: linear-gradient(to right, red, #e53e3e);
     }
 
@@ -227,6 +234,38 @@
       color: #c53030;
       border: 1px solid #feb2b2;
     }
+
+    .category-filter {
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .category-btn {
+      padding: 0.5rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      color: #4a5568;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .category-btn.active {
+      background: #4299e1;
+      color: white;
+      border-color: #4299e1;
+    }
+
+    .chain-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      background: #ebf4ff;
+      color: #4299e1;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      margin-left: 0.5rem;
+    }
   </style>
 </head>
 <body>
@@ -247,7 +286,23 @@
       <h3 style="margin-bottom: 1.5rem; color: #2d3748;">添加新密码</h3>
       <form id="addForm">
         <div class="form-group">
-          <label for="site">网站</label>
+          <label for="category">分类</label>
+          <select id="category" name="category" required onchange="toggleChainSelect(this, 'chainSelect')">
+            <% categories.forEach(function(category) { %>
+              <option value="<%= category %>"><%= category %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div id="chainSelect" class="form-group chain-select">
+          <label for="chain">链</label>
+          <select id="chain" name="chain">
+            <% walletChains.forEach(function(chain) { %>
+              <option value="<%= chain %>"><%= chain %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="site">名称</label>
           <input type="text" id="site" name="site" required placeholder="例如：github.com">
         </div>
         <div class="form-group">
@@ -263,10 +318,18 @@
       </form>
     </div>
 
+    <div class="category-filter">
+      <button class="category-btn active" onclick="filterPasswords('all')">全部</button>
+      <% categories.forEach(function(category) { %>
+        <button class="category-btn" onclick="filterPasswords('<%= category %>')"><%= category %></button>
+      <% }); %>
+    </div>
+
     <table>
       <thead>
         <tr>
-          <th>网站</th>
+          <th>分类</th>
+          <th>名称</th>
           <th>用户名</th>
           <th>密码</th>
           <th>操作</th>
@@ -274,7 +337,13 @@
       </thead>
       <tbody id="passwordsList">
         <% passwords.forEach(function(password) { %>
-          <tr data-id="<%= password.id %>">
+          <tr data-id="<%= password.id %>" data-category="<%= password.category %>">
+            <td>
+              <%= password.category %>
+              <% if (password.category === '钱包' && password.chain) { %>
+                <span class="chain-badge"><%= password.chain %></span>
+              <% } %>
+            </td>
             <td><%= password.site %></td>
             <td><%= password.username %></td>
             <td class="password-field">
@@ -282,7 +351,7 @@
               <button type="button" class="toggle-password" onclick="togglePasswordRow(this)">👁️</button>
             </td>
             <td>
-              <button onclick="openEditModal('<%= password.id %>', '<%= password.site %>', '<%= password.username %>', '<%= password.password %>')" class="edit-btn">编辑</button>
+              <button onclick="openEditModal('<%= password.id %>', '<%= password.category %>', '<%= password.chain || '' %>', '<%= password.site %>', '<%= password.username %>', '<%= password.password %>')" class="edit-btn">编辑</button>
               <button onclick="deletePassword('<%= password.id %>')" class="delete-btn">删除</button>
               <button onclick="copyPassword('<%= password.password %>')" class="copy-btn">复制密码</button>
             </td>
@@ -299,7 +368,23 @@
       <form id="editForm">
         <input type="hidden" id="editId" name="id">
         <div class="form-group">
-          <label for="editSite">网站</label>
+          <label for="editCategory">分类</label>
+          <select id="editCategory" name="category" required onchange="toggleChainSelect(this, 'editChainSelect')">
+            <% categories.forEach(function(category) { %>
+              <option value="<%= category %>"><%= category %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div id="editChainSelect" class="form-group chain-select">
+          <label for="editChain">链</label>
+          <select id="editChain" name="chain">
+            <% walletChains.forEach(function(chain) { %>
+              <option value="<%= chain %>"><%= chain %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editSite">名称</label>
           <input type="text" id="editSite" name="site" required>
         </div>
         <div class="form-group">
@@ -329,6 +414,18 @@
       }, 3000);
     }
 
+    function toggleChainSelect(categorySelect, chainSelectId) {
+      const chainSelect = document.getElementById(chainSelectId);
+      if (categorySelect.value === '钱包') {
+        chainSelect.classList.add('show');
+        chainSelect.querySelector('select').required = true;
+      } else {
+        chainSelect.classList.remove('show');
+        chainSelect.querySelector('select').required = false;
+        chainSelect.querySelector('select').value = '';
+      }
+    }
+
     function updatePasswordsList() {
       fetch(`${BASE_PATH}/dashboard`)
         .then(response => response.text())
@@ -342,6 +439,10 @@
     document.getElementById('addForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
+      const category = formData.get('category');
+      if (category !== '钱包') {
+        formData.delete('chain');
+      }
       try {
         const response = await fetch(`${BASE_PATH}/add-password`, {
           method: 'POST',
@@ -365,6 +466,10 @@
     document.getElementById('editForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
+      const category = formData.get('category');
+      if (category !== '钱包') {
+        formData.delete('chain');
+      }
       try {
         const response = await fetch(`${BASE_PATH}/edit-password`, {
           method: 'POST',
@@ -417,12 +522,16 @@
       }
     }
 
-    function openEditModal(id, site, username, password) {
+    function openEditModal(id, category, chain, site, username, password) {
       document.getElementById('editModal').style.display = 'block';
       document.getElementById('editId').value = id;
+      document.getElementById('editCategory').value = category;
+      document.getElementById('editChain').value = chain;
       document.getElementById('editSite').value = site;
       document.getElementById('editUsername').value = username;
       document.getElementById('editPassword').value = password;
+      
+      toggleChainSelect(document.getElementById('editCategory'), 'editChainSelect');
     }
 
     function closeEditModal() {
@@ -439,11 +548,37 @@
       input.type = input.type === 'password' ? 'text' : 'password';
     }
 
+    function filterPasswords(category) {
+      const rows = document.querySelectorAll('#passwordsList tr');
+      const buttons = document.querySelectorAll('.category-btn');
+      
+      buttons.forEach(btn => {
+        btn.classList.remove('active');
+        if (
+          (category === 'all' && btn.textContent === '全部') ||
+          btn.textContent === category
+        ) {
+          btn.classList.add('active');
+        }
+      });
+
+      rows.forEach(row => {
+        if (category === 'all' || row.dataset.category === category) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
     window.onclick = function(event) {
       if (event.target == document.getElementById('editModal')) {
         closeEditModal();
       }
     }
+
+    // 初始化时设置链选择的显示状态
+    toggleChainSelect(document.getElementById('category'), 'chainSelect');
   </script>
 </body>
 </html>

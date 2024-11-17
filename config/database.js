@@ -3,7 +3,6 @@ const path = require('path');
 
 const DB_PATH = path.join(__dirname, '..', 'data', 'db.json');
 
-// 确保数据文件存在
 async function initDatabase() {
   try {
     await fs.access(DB_PATH);
@@ -19,18 +18,15 @@ async function initDatabase() {
   }
 }
 
-// 读取数据库
 async function readDB() {
   const data = await fs.readFile(DB_PATH, 'utf8');
   return JSON.parse(data);
 }
 
-// 写入数据库
 async function writeDB(data) {
   await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2));
 }
 
-// 数据库操作
 const db = {
   async get(table, query) {
     const data = await readDB();
@@ -49,17 +45,17 @@ const db = {
     
     switch (operation) {
       case 'INSERT_PASSWORD': {
-        const { site, username, password } = params;
-        const id = Date.now(); // 使用时间戳作为ID
-        data.passwords.push({ id, site, username, password });
+        const { category, chain, site, username, password } = params;
+        const id = Date.now();
+        data.passwords.push({ id, category, chain, site, username, password });
         break;
       }
       
       case 'UPDATE_PASSWORD': {
-        const { id, site, username, password } = params;
+        const { id, category, chain, site, username, password } = params;
         const index = data.passwords.findIndex(p => p.id === Number(id));
         if (index !== -1) {
-          data.passwords[index] = { id: Number(id), site, username, password };
+          data.passwords[index] = { id: Number(id), category, chain, site, username, password };
         }
         break;
       }
@@ -76,7 +72,6 @@ const db = {
   }
 };
 
-// 初始化数据库
 initDatabase().catch(console.error);
 
 module.exports = db;
