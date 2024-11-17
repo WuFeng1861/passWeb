@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>密码管理器 - 控制面板</title>
+  <link rel="icon" type="image/x-icon" href="<%= basePath %>/favicon.ico">
+  <!-- 保持原有样式不变 -->
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f7fafc;
+      color: #2d3748;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+   .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .title-with-logo {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo {
+      width: 2rem;
+      height: 2rem;
+      color: #667eea;
+    }
+
+    h2 {
+      color: #2d3748;
+      font-size: 1.5rem;
+    }
+
+    .logout-btn {
+      padding: 0.5rem 1.5rem;
+      background: linear-gradient(to right, #f56565, #e53e3e);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .add-form {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #4a5568;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #4299e1;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    button[type="submit"] {
+      background: linear-gradient(to right, #4299e1, #667eea);
+    }
+
+    .edit-btn {
+      background: linear-gradient(to right, #48bb78, #38a169);
+    }
+
+    .delete-btn {
+      background: linear-gradient(to right, #f56565, #e53e3e);
+    }
+	
+	.copy-btn {
+      background: linear-gradient(to right, red, #e53e3e);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #4a5568;
+      font-weight: 600;
+      text-align: left;
+      padding: 1rem 1.5rem;
+    }
+
+    td {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    tr:hover {
+      background: #f8fafc;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      background: white;
+      margin: 10% auto;
+      padding: 2rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .close {
+      float: right;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #a0aec0;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .close:hover {
+      color: #4a5568;
+    }
+
+    .password-field {
+      position: relative;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #4a5568;
+      cursor: pointer;
+      padding: 0.25rem;
+    }
+
+    .alert {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .alert-success {
+      background-color: #c6f6d5;
+      color: #2f855a;
+      border: 1px solid #9ae6b4;
+    }
+
+    .alert-error {
+      background-color: #fed7d7;
+      color: #c53030;
+      border: 1px solid #feb2b2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title-with-logo">
+        <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+        </svg>
+        <h2>密码管理系统</h2>
+      </div>
+      <a href="<%= basePath %>/logout" class="logout-btn">退出登录</a>
+    </div>
+
+    <div id="alert" class="alert"></div>
+
+    <div class="add-form">
+      <h3 style="margin-bottom: 1.5rem; color: #2d3748;">添加新密码</h3>
+      <form id="addForm">
+        <div class="form-group">
+          <label for="site">网站</label>
+          <input type="text" id="site" name="site" required placeholder="例如：github.com">
+        </div>
+        <div class="form-group">
+          <label for="username">用户名</label>
+          <input type="text" id="username" name="username" required placeholder="输入用户名">
+        </div>
+        <div class="form-group password-field">
+          <label for="password">密码</label>
+          <input type="password" id="password" name="password" required>
+          <button type="button" class="toggle-password" onclick="togglePassword('password')">👁️</button>
+        </div>
+        <button type="submit">添加密码</button>
+      </form>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>网站</th>
+          <th>用户名</th>
+          <th>密码</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="passwordsList">
+        <% passwords.forEach(function(password) { %>
+          <tr data-id="<%= password.id %>">
+            <td><%= password.site %></td>
+            <td><%= password.username %></td>
+            <td class="password-field">
+              <input type="password" value="<%= password.password %>" readonly>
+              <button type="button" class="toggle-password" onclick="togglePasswordRow(this)">👁️</button>
+            </td>
+            <td>
+              <button onclick="openEditModal('<%= password.id %>', '<%= password.site %>', '<%= password.username %>', '<%= password.password %>')" class="edit-btn">编辑</button>
+              <button onclick="deletePassword('<%= password.id %>')" class="delete-btn">删除</button>
+              <button onclick="copyPassword('<%= password.password %>')" class="copy-btn">复制密码</button>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeEditModal()">&times;</span>
+      <h3 style="margin-bottom: 1.5rem; color: #2d3748;">编辑密码</h3>
+      <form id="editForm">
+        <input type="hidden" id="editId" name="id">
+        <div class="form-group">
+          <label for="editSite">网站</label>
+          <input type="text" id="editSite" name="site" required>
+        </div>
+        <div class="form-group">
+          <label for="editUsername">用户名</label>
+          <input type="text" id="editUsername" name="username" required>
+        </div>
+        <div class="form-group password-field">
+          <label for="editPassword">密码</label>
+          <input type="password" id="editPassword" name="password" required>
+          <button type="button" class="toggle-password" onclick="togglePassword('editPassword')">👁️</button>
+        </div>
+        <button type="submit">保存修改</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const BASE_PATH = '<%= basePath %>';
+    
+    function showAlert(message, type) {
+      const alert = document.getElementById('alert');
+      alert.textContent = message;
+      alert.className = `alert alert-${type}`;
+      alert.style.display = 'block';
+      setTimeout(() => {
+        alert.style.display = 'none';
+      }, 3000);
+    }
+
+    function updatePasswordsList() {
+      fetch(`${BASE_PATH}/dashboard`)
+        .then(response => response.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          document.getElementById('passwordsList').innerHTML = doc.getElementById('passwordsList').innerHTML;
+        });
+    }
+
+    document.getElementById('addForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      try {
+        const response = await fetch(`${BASE_PATH}/add-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(Object.fromEntries(formData)),
+        });
+        if (response.ok) {
+          showAlert('密码添加成功！', 'success');
+          e.target.reset();
+          updatePasswordsList();
+        } else {
+          showAlert('添加失败，请重试', 'error');
+        }
+      } catch (error) {
+        showAlert('系统错误，请稍后重试', 'error');
+      }
+    });
+
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      try {
+        const response = await fetch(`${BASE_PATH}/edit-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(Object.fromEntries(formData)),
+        });
+        if (response.ok) {
+          showAlert('密码更新成功！', 'success');
+          closeEditModal();
+          updatePasswordsList();
+        } else {
+          showAlert('更新失败，请重试', 'error');
+        }
+      } catch (error) {
+        showAlert('系统错误，请稍后重试', 'error');
+      }
+    });
+
+    function copyTextToClipboard(text) {
+      var aux = document.createElement("input");
+      aux.setAttribute("value", text);
+      document.body.appendChild(aux);
+      aux.select();
+      document.execCommand("copy");
+      document.body.removeChild(aux);
+    }
+
+    async function copyPassword(password) {
+      copyTextToClipboard(password);
+      alert('复制成功');
+    }
+    
+    async function deletePassword(id) {
+      if (!confirm('确定要删除这条密码记录吗？')) return;
+      
+      try {
+        const response = await fetch(`${BASE_PATH}/delete-password/${id}`, {
+          method: 'POST',
+        });
+        if (response.ok) {
+          showAlert('密码删除成功！', 'success');
+          updatePasswordsList();
+        } else {
+          showAlert('删除失败，请重试', 'error');
+        }
+      } catch (error) {
+        showAlert('系统错误，请稍后重试', 'error');
+      }
+    }
+
+    function openEditModal(id, site, username, password) {
+      document.getElementById('editModal').style.display = 'block';
+      document.getElementById('editId').value = id;
+      document.getElementById('editSite').value = site;
+      document.getElementById('editUsername').value = username;
+      document.getElementById('editPassword').value = password;
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function togglePassword(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function togglePasswordRow(button) {
+      const input = button.previousElementSibling;
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    window.onclick = function(event) {
+      if (event.target == document.getElementById('editModal')) {
+        closeEditModal();
+      }
+    }
+  </script>
+</body>
+</html>

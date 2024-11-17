@@ -1,0 +1,34 @@
+{
+  "admin": [
+    {
+      "username": "1379459026",
+      "password": "1"
+    }
+  ],
+  "passwords": [
+    {
+      "id": 1730978276224,
+      "site": "blot.new",
+      "username": "1379459026@qq.com",
+      "password": "18460391861lL"
+    },
+    {
+      "id": 1730978311458,
+      "site": "谷歌密码",
+      "username": "liuf9200@gmail.com",
+      "password": "18460391861L!"
+    },
+    {
+      "id": 1730978652965,
+      "site": "gitee",
+      "username": "1379459026@qq.com",
+      "password": "18460391861Ll"
+    },
+    {
+      "id": 1730979381267,
+      "site": "okx",
+      "username": "1379459026@qq.com",
+      "password": "18460391861Ll!"
+    }
+  ]
+}
